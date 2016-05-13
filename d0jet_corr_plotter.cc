@@ -64,6 +64,28 @@ void D0jetCorrPlotter::getPxCut(double pxCutPercentage)
 }
 
 
+void D0jetCorrPlotter::getCorrelation(int rebinFactor)
+{
+  pair<int,int> ptBinCut(2,10);
+	TH2F *corBkg2D = (TH2F *)inputFile->Get("corBkg")->Clone("corBkg2D");
+	TH2F *corCand2D = (TH2F *)inputFile->Get("corCand")->Clone("corCand2D");
+  TH2F *candCount = (TH2F *)inputFile->Get("candCount")->Clone("candCount");
+  TH2F *bkgCount = (TH2F *)inputFile->Get("bkgCount")->Clone("bkgCount");
+  double nD0Cand = candCount->ProjectionX("candCount1D")->Integral();
+  double nD0Bkg= bkgCount->ProjectionX("bkgCount1D")->Integral();
+  cout<<"# of candidate D0 = "<<nD0Cand<<endl;
+  cout<<"# of background D0 = "<<nD0Bkg<<endl;
+	candCorrelation = (TH1D *)corCand2D->ProjectionX("candCorrelation")->Clone("candCorrelation");
+	bkgCorrelation = (TH1D *)corBkg2D->ProjectionX("bkgCorrelation")->Clone("bkgCorrelation");
+	candCorrelation->Rebin(rebinFactor);
+	candCorrelation->Scale(1./candCorrelation->GetBinWidth(1)/nD0Cand);
+	bkgCorrelation->Rebin(rebinFactor);
+	bkgCorrelation->Scale(1./bkgCorrelation->GetBinWidth(1)/nD0Bkg);
+
+	TH3F *mass2d = (TH3F *)inputFile->Get("massPt")->Clone("mass2d");
+	TH1D *massAllTrigger = (TH1D *)mass2d->ProjectionX("massAllTrigger",ptBinCut.first,ptBinCut.second,1,10)->Clone("massAllTrigger");
+	double f = getSBRatio(massAllTrigger);
+}
 void D0jetCorrPlotter::getCorrelation(pair<int,int> &centralityBinCut,int rebinFactor)
 {
   pair<int,int> ptBinCut(2,10);
@@ -126,7 +148,7 @@ void D0jetCorrPlotter::getCorrelation(pair<int,int> &centralityBinCut,int rebinF
 
   // get signal correlation
 	// float f = 0.1983;//px = 10%, pT>2
-	float f = getSBRatio(massAllTrigger);
+	double f = getSBRatio(massAllTrigger);
   cout<<"S/(S+B) ratio = "<<f<<endl;
 	signalCorrelation = (TH1D *)candCorrelation->Clone("signalCorrelation");
 	signalCorrelation->Add(bkgCorrelation,f-1);
@@ -261,7 +283,8 @@ double D0jetCorrPlotter::getSBRatio(TH1D *massHisto)
   double fitResult[3];
   TCanvas *fitCanvas = new TCanvas();
 	fit_hist(massHisto,fitCanvas,1,3,fitResult);
-  return fitResult[0]/fitResult[1];
+  mSOverC = fitResult[0]/fitResult[1];
+  return mSOverC;
 }
 
 

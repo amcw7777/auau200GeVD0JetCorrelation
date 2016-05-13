@@ -27,9 +27,10 @@ class D0jetCorrPlotter
     void finish();
     void getPxCut(double);
     void getCorrelation(std::pair<int,int> &, int);
+    void getCorrelation(int);
     void plotSignificance(TH2D *);
     void plotCorrelation();
-    double getSBRatio(TH1D *massHisto);
+    double getSBRatio() {return mSOverC;}
     TH1D *getSignalCorrelation(){return signalCorrelation;};
     TH1D *getBkgCorrelation(){return bkgCorrelation;};
     TH1D *getCandCorrelation(){return candCorrelation;};
@@ -39,6 +40,7 @@ class D0jetCorrPlotter
 
   private:
     void fit_hist(TH1D *histo, TCanvas *cfg, int iptbin ,double nSigma,double fitArray[3]);
+    double getSBRatio(TH1D *massHisto);
     TFile *inputFile;
     ofstream mLog;
     TH1D *signalCorrelation;
@@ -48,4 +50,5 @@ class D0jetCorrPlotter
     TH1D *bkgCorrelationClose;
     TH1D *candCorrelationFar;
     TH1D *bkgCorrelationFar;
+    double mSOverC;
 };
